@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  jobson-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobson_application
+    restart: unless-stopped
+    ports:
+      - "3500:3500"
+    env_file:
+      - .env
+    networks:
+      - jobson-network
+    depends_on:
+      - jobson-db
+
+  jobson-db:
+    image: postgres:13
+    container_name: jobson_postgres_db
+    restart: unless-stopped
+    volumes:
+      - jobson-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=username
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=jobson
+    networks:
+      - jobson-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_dashboard
+    restart: unless-stopped
+    depends_on:
+      - jobson-db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com # Replace with your email address
+      PGADMIN_DEFAULT_PASSWORD: admin # Replace with your password
+    ports:
+      - "5050:80" # Exposes PGAdmin on port 5050 of the host
+    networks:
+      - jobson-network
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  jobson-db-data:
+  pgadmin-data:
+
+networks:
+  jobson-network:
